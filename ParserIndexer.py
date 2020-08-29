@@ -100,6 +100,8 @@ class MyParser(xml.sax.ContentHandler):
         
         if name=='page':
             title = title.strip().encode("ascii",errors="ignore").decode()
+            title = remove_crap(title)
+            title = ' '.join(title)
             Identities[count_of_pages] = title
             text_processor()
             index_creation()
@@ -234,6 +236,7 @@ def write_partial_index():
     global temp_posting_list
     global Identities
     global count_of_files
+    global distinct_terms
     datum = []
     for term in sorted(temp_posting_list.keys()):
         distinct_terms += 1
@@ -268,10 +271,13 @@ def write_partial_index():
 def main():
     global count_of_pages
     global Identities
+    global distinct_terms
     current_directory = os.getcwd()
     directory = os.path.join(current_directory, 'data')
+
     if not os.path.exists(directory):
         os.mkdir(directory)
+    
     parser = xml.sax.make_parser()
     parser.setFeature(xml.sax.handler.feature_namespaces, False)
     handler = MyParser()
