@@ -29,6 +29,7 @@ my_stemmer = Stemmer.Stemmer('english')
 temp_posting_list = defaultdict(list)
 gap = 0
 count_of_files = 0
+distinct_terms = 0  # The number of distinct terms in corpus -> useful for binary-search
 
 class MyParser(xml.sax.ContentHandler):
     
@@ -235,6 +236,7 @@ def write_partial_index():
     global count_of_files
     datum = []
     for term in sorted(temp_posting_list.keys()):
+        distinct_terms += 1
         posting_list = temp_posting_list[term]
         st = term + ' '
         st += ' '.join(posting_list)
@@ -276,6 +278,9 @@ def main():
     parser.setContentHandler(handler)
     output = parser.parse(sys.argv[1])
     write_partial_index()
+    # we will need to change distinct_terms when we write the merge file function
+    with open('./data/totalTerms.txt', 'w') as file:
+        file.write(str(distinct_terms))
     print(count_of_files)
     print(count_of_pages)
 
