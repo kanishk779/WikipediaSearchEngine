@@ -244,16 +244,16 @@ def write_partial_index():
         file.write('\n'.join(datum))
     
     datum = []
-    offset = []
+    # offset = []
     for ind in sorted(Identities):
-        offset.append(str(gap))
+        # offset.append(str(gap))
         string = str(ind) + ' ' + Identities[ind].strip()
         datum.append(string)
         gap += 1
     
-    with open('./data/titleOffset.txt', 'a') as file:
-        file.write('\n'.join(offset))
-        file.write('\n')
+    # with open('./data/titleOffset.txt', 'a') as file:
+    #     file.write('\n'.join(offset))
+    #     file.write('\n')
     with open('./data/title.txt', 'a') as file:
         file.write('\n'.join(datum))
         file.write('\n')
