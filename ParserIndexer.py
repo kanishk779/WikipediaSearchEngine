@@ -240,7 +240,7 @@ def write_partial_index():
         st += ' '.join(posting_list)
         datum.append(st)
     
-    with open('./data/index' + str(count_of_files) + '.txt', 'w') as file:
+    with open('./data/index0.txt', 'a') as file:
         file.write('\n'.join(datum))
     
     datum = []
