@@ -29,6 +29,7 @@ my_stemmer = Stemmer.Stemmer('english')
 temp_posting_list = defaultdict(list)
 gap = 0
 count_of_files = 0
+total_words = 0
 distinct_terms = 0  # The number of distinct terms in corpus -> useful for binary-search
 
 class MyParser(xml.sax.ContentHandler):
@@ -175,7 +176,7 @@ def remove_crap(text):
 
 def index_creation():
     global temp_posting_list
-    
+    global total_words
     terms = defaultdict(int)
     title_terms = title.split()
     freq_title = defaultdict(int)
@@ -211,6 +212,7 @@ def index_creation():
         freq_global[i] += 1
     
     for key in freq_global.keys():
+        total_words += freq_global[key]
         string = str(count_of_pages)
         if freq_infobox[key]:
             string += 'i' + str(freq_infobox[key])
@@ -230,7 +232,11 @@ def index_creation():
     if not rem:
         write_partial_index()
     
-    
+'''
+Write partial index into files so that it can later be merged into single index, this helps
+improving the speed of indexing, also for large corpus this is necessary, as large data cannot
+fit into the memory.
+'''   
 def write_partial_index():
     global gap
     global temp_posting_list
@@ -268,12 +274,22 @@ def write_partial_index():
     Identities = {}
     temp_posting_list = defaultdict(list)
 
+'''
+Merge multiple partial indexes into a single large index and store meta-information in files
+'''
+def merge_small_indexes():
+    # write this method in c++, we will get set
+    pass
+
 def main():
     global count_of_pages
     global Identities
     global distinct_terms
     current_directory = os.getcwd()
-    directory = os.path.join(current_directory, 'data')
+    folder = sys.argv[2]
+    if folder[-1] != '/':
+        folder += '/'
+    directory = os.path.join(current_directory, folder)
 
     if not os.path.exists(directory):
         os.mkdir(directory)
@@ -285,7 +301,10 @@ def main():
     output = parser.parse(sys.argv[1])
     write_partial_index()
     # we will need to change distinct_terms when we write the merge file function
-    with open('./data/totalTerms.txt', 'w') as file:
+    with open(folder + 'fileCount.txt', 'w') as file:
+        file.write(str(count_of_files))
+    with open(folder + sys.argv[3], 'w') as file:
+        file.write(str(total_words) + '\n')
         file.write(str(distinct_terms))
     print(count_of_files)
     print(count_of_pages)

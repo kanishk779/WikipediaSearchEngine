@@ -17,7 +17,8 @@ TYPES = 6
 TYPE_LIST = ['t', 'b', 'i', 'c', 'r', 'e']
 # We are storing the index in memory for now as it just 144MB , but this will not scale
 INDEX = {}
-
+title_offset = []
+distinct_words = 0
 '''
 This finds the term using binary search(currently not using it) and returns its posting list
 '''
@@ -67,7 +68,21 @@ def handle_simple_query(term):
                 docID += char
         result.append(docID)
     return result
-
+'''
+This loads the offsets in memory for easy access of data from files on disk
+'''
+def load_offsets():
+    global title_offset
+    global distinct_words
+    with open('./data/titleOffset.txt', 'r') as file:
+        lines = file.readlines()
+        for line in lines:
+            title_offset.append(int(line.strip()))
+    with open('./data/totalTerms.txt', 'r') as file:
+        lines = file.readlines()
+        for line in lines:
+            distinct_words = int(line.strip())
+    
 '''
 This reads the index into memory, this is fine for Phase-1
 '''
