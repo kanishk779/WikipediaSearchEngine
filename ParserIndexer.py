@@ -6,6 +6,7 @@ import Stemmer
 import time
 import os
 import sys
+import heapq
 
 count_of_pages = 1
 Identities = {}
@@ -29,6 +30,7 @@ my_stemmer = Stemmer.Stemmer('english')
 temp_posting_list = defaultdict(list)
 gap = 0
 count_of_files = 0
+count_of_final_files = 0
 total_words = 0
 distinct_terms = 0  # The number of distinct terms in corpus -> useful for binary-search
 
@@ -228,7 +230,7 @@ def index_creation():
             string += 't' + str(freq_title[key])
         
         temp_posting_list[key].append(string)
-    rem = count_of_pages%20000
+    rem = count_of_pages%250
     if not rem:
         write_partial_index()
     
@@ -251,7 +253,7 @@ def write_partial_index():
         st += ' '.join(posting_list)
         datum.append(st)
     
-    with open('./data/index0.txt', 'a') as file:
+    with open('./data/index' + str(count_of_files) + '.txt', 'w') as file:
         file.write('\n'.join(datum))
     
     datum = []
@@ -280,6 +282,7 @@ Merge multiple partial indexes into a single large index and store meta-informat
 def merge_small_indexes():
     # write this method using heapq, we will get set
     global path_to_indexes
+    global count_of_final_files
     not_processed = [1] * count_of_files
     indexes = {}
     term_list = []
@@ -297,11 +300,10 @@ def merge_small_indexes():
         term_list.append((term, first_line[ind : ], i))
     
     heapq.heapify(term_list)
-    count_of_final_files = 0
     top = heapq.heappop(term_list)
     prev_term = top[0]
     posting_list = defaultdict(list)
-    posting_list[prev_term] = top[1]
+    posting_list[prev_term].append(top[1])
     # read next line from this file
     first_line = indexes[top[2]].readline().strip()
     if len(first_line) > 0:
@@ -318,9 +320,27 @@ def merge_small_indexes():
         indexes[top[2]].close()
         os.remove(path_to_indexes+'index'+str(i)+'.txt')
     
-    count = 0
+    count = 1
     while any(not_processed):
         top = heapq.heappop(term_list)
+        diff = False
+        if top[0] != prev_term:
+            diff = True
+        # write after reading 10000 lines, but ensure all lines with same term are read before reading
+        if count > 900 and count < 1000 and diff:
+            datum = []
+            count_of_final_files += 1
+            for term in sorted(posting_list.keys()):
+                posting = posting_list[term]
+                st = term
+                st += ' '.join(posting)
+                datum.append(st)
+    
+            with open(path_to_indexes+'findex' + str(count_of_final_files) + '.txt', 'w') as file:
+                file.write('\n'.join(datum))
+            posting_list = defaultdict(list)
+            count = 0
+        
         posting_list[top[0]].append(top[1])
         count += 1
         first_line = indexes[top[2]].readline().strip()
@@ -336,31 +356,35 @@ def merge_small_indexes():
         else:
             not_processed[top[2]] = 0
             indexes[top[2]].close()
-            os.remove(path_to_indexes+'index'+str(i)+'.txt')
-        # write after reading 10000 lines
-        if not count % 10000:
-            datum = []
-            count_of_final_files += 1
-            for term in sorted(posting_list.keys()):
-                distinct_terms += 1
-                posting = posting_list[term]
-                st = term + ' '
-                st += ' '.join(posting)
-                datum.append(st)
+            os.remove(path_to_indexes+'index'+str(top[2])+'.txt')
+        prev_term = top[0]
+        
     
-            with open('./data/index0.txt', 'a') as file:
-                file.write('\n'.join(datum))
+    if count > 0:
+        datum = []
+        count_of_final_files += 1
+        for term in sorted(posting_list.keys()):
+            posting = posting_list[term]
+            st = term
+            st += ' '.join(posting)
+            datum.append(st)
+
+        with open(path_to_indexes+'findex' + str(count_of_final_files) + '.txt', 'w') as file:
+            file.write('\n'.join(datum))
+
+
 
 def main():
     global count_of_pages
     global Identities
     global distinct_terms
+    global path_to_indexes
     current_directory = os.getcwd()
     folder = sys.argv[2]
     if folder[-1] != '/':
         folder += '/'
     directory = os.path.join(current_directory, folder)
-
+    path_to_indexes = directory
     if not os.path.exists(directory):
         os.mkdir(directory)
     
@@ -376,8 +400,9 @@ def main():
     with open(folder + sys.argv[3], 'w') as file:
         file.write(str(total_words) + '\n')
         file.write(str(distinct_terms))
+    merge_small_indexes()
     print(count_of_files)
     print(count_of_pages)
-
+    print(count_of_final_files)
 if __name__ == '__main__':
 	main()
