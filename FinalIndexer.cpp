@@ -24,12 +24,12 @@ int main(){
     vector<int> not_used(partial_files, 1);
     vector<vector<string> > file_data(partial_files);
     vector<ifstream> file_pointers(partial_files);
-    // for(int i=0;i < partial_files;i++){
-    //     string num = "";
-    //     num += char(i + '0');
-    //     ifstream descriptor("./data/index"+num+".txt");
-    //     file_pointers[i] = descriptor;
-    // }
+    for(int i=0;i < partial_files;i++){
+        string num = "";
+        num += char(i + '0');
+        ifstream descriptor("./data/index"+num+".txt");
+        file_pointers[i] = descriptor;
+    }
      
     return 0;
 }

@@ -278,8 +278,66 @@ def write_partial_index():
 Merge multiple partial indexes into a single large index and store meta-information in files
 '''
 def merge_small_indexes():
-    # write this method in c++, we will get set
-    pass
+    # write this method using heapq, we will get set
+    global path_to_indexes
+    not_processed = [1] * count_of_files
+    indexes = {}
+    term_list = []
+    for i in range(count_of_files):
+        indexes[i] = open(path_to_indexes+'index' + str(i) + '.txt', 'r')
+        first_line = indexes[i].readline().strip()
+        term = ""
+        ind = 0
+        for char in first_line:
+            if char == ' ':
+                break
+            term += str(char)
+            ind += 1
+        # we need to use this as the key for heapq
+        term_list.append((term, first_line[ind : ], i))
+    
+    heapq.heapify(term_list)
+    count_of_final_files = 0
+    top = heapq.heappop(term_list)
+    prev_term = top[0]
+    posting_list = defaultdict(list)
+    posting_list[prev_term] = top[1]
+    # read next line from this file
+    first_line = indexes[top[2]].readline().strip()
+    if len(first_line) > 0:
+        term = ""
+        ind = 0
+        for char in first_line:
+            if char == ' ':
+                break
+            term += str(char)
+            ind += 1
+        heapq.heappush(term_list, (term, first_line[ind : ], top[2]))
+    else:
+        not_processed[top[2]] = 0
+        indexes[top[2]].close()
+        os.remove(path_to_indexes+'index'+str(i)+'.txt')
+    
+    count = 0
+    while any(not_processed):
+        top = heapq.heappop(term_list)
+        posting_list[top[0]].append(top[1])
+        count += 1
+        first_line = indexes[top[2]].readline().strip()
+        if len(first_line) > 0:
+            term = ""
+            ind = 0
+            for char in first_line:
+                if char == ' ':
+                    break
+                term += str(char)
+                ind += 1
+            heapq.heappush(term_list, (term, first_line[ind : ], top[2]))
+        else:
+            not_processed[top[2]] = 0
+            indexes[top[2]].close()
+            os.remove(path_to_indexes+'index'+str(i)+'.txt')
+        # write after reading 10000 lines
 
 def main():
     global count_of_pages
