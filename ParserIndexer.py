@@ -338,6 +338,18 @@ def merge_small_indexes():
             indexes[top[2]].close()
             os.remove(path_to_indexes+'index'+str(i)+'.txt')
         # write after reading 10000 lines
+        if not count % 10000:
+            datum = []
+            count_of_final_files += 1
+            for term in sorted(posting_list.keys()):
+                distinct_terms += 1
+                posting = posting_list[term]
+                st = term + ' '
+                st += ' '.join(posting)
+                datum.append(st)
+    
+            with open('./data/index0.txt', 'a') as file:
+                file.write('\n'.join(datum))
 
 def main():
     global count_of_pages
