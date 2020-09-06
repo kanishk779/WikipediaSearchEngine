@@ -237,7 +237,7 @@ def index_creation():
             string += 't' + str(freq_title[key])
         
         temp_posting_list[key].append(string)
-    rem = count_of_pages%20000
+    rem = count_of_pages%400
     if not rem:
         write_partial_index()
     
@@ -257,10 +257,6 @@ def write_partial_index():
         distinct_terms += 1
         posting_list = temp_posting_list[term]
         st = term + ' '
-        docs = 0
-        for block in posting_list:
-            docs += 1
-            
         st += ' '.join(posting_list)
         datum.append(st)
     
@@ -268,16 +264,16 @@ def write_partial_index():
         file.write('\n'.join(datum))
     
     datum = []
-    offset = []
+    # offset = []
     for ind in sorted(Identities):
-        offset.append(str(gap))
+        # offset.append(str(gap))
         string = str(ind) + ' ' + Identities[ind].strip()
         datum.append(string)
-        gap += 1 + len(string)
+        # gap += 1 + len(string)
     
-    with open('./data/titleOffset.txt', 'a') as file:
-        file.write('\n'.join(offset))
-        file.write('\n')
+    # with open('./data/titleOffset.txt', 'a') as file:
+    #     file.write('\n'.join(offset))
+    #     file.write('\n')
     with open('./data/title.txt', 'a') as file:
         file.write('\n'.join(datum))
         file.write('\n')
@@ -338,12 +334,26 @@ def merge_small_indexes():
         if top[0] != prev_term:
             diff = True
         # write after reading 10000 lines, but ensure all lines with same term are read before reading
-        if count > 499100 and count < 500000 and diff:
+        if count > 48000 and count < 50000 and diff:
             datum = []
             count_of_final_files += 1
             for term in sorted(posting_list.keys()):
                 posting = posting_list[term]
                 st = term + ' '
+                docs = 0
+                type_dict = defaultdict(int)
+                for block in posting:
+                    bb = block.split()
+                    for b in bb:
+                        docs += 1
+                        for category in TYPE_LIST:
+                            if category in b:
+                                type_dict[category] += 1
+                temp = "f" + str(docs)
+                for category in TYPE_LIST:
+                    if type_dict[category] > 0:
+                        temp += category + str(type_dict[category])
+                st += temp +  ' '
                 st += ' '.join(posting)
                 datum.append(st)
     
@@ -377,6 +387,21 @@ def merge_small_indexes():
         for term in sorted(posting_list.keys()):
             posting = posting_list[term]
             st = term +  ' '
+            docs = 0
+            type_dict = defaultdict(int)
+            for block in posting:
+                bb = block.split()
+                for b in bb:
+                    docs += 1
+                    for category in TYPE_LIST:
+                        if category in b:
+                            type_dict[category] += 1
+            temp = "f" + str(docs)
+            for category in TYPE_LIST:
+                if type_dict[category] > 0:
+                    temp += category + str(type_dict[category])
+
+            st += temp +  ' '
             st += ' '.join(posting)
             datum.append(st)
 

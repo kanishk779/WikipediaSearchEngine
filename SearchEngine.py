@@ -105,15 +105,22 @@ def handle_simple_query(term):
         result.append(docID)
     return result
 '''
-This loads the titles in memory for easy access of data instead of reading everytime from disk
+This loads the titles in memory for easy access of data instead of reading everytime from disk, titles can be multi words
 '''
 def load_titles():
     global title_dict
     with open('./data/title.txt','r') as file:
         lines = file.readlines()
         for line in lines:
-            temp = line.split()
-            title_dict[int(temp[0])] = temp[1]
+            num = ""
+            ind = 0
+            for char in line:
+                ind += 1
+                if char == ' ':
+                    break
+                else:
+                    num += char
+            title_dict[int(num)] = line[ind : ]
     
 '''
 This reads the partial index into memory. We read such a file which contains our term
@@ -165,7 +172,6 @@ def main():
     # read_index_into_memory()
     load_info()
     load_titles()
-    
     while True:
         query = input("ASK : ")
         start_time = time.time()
