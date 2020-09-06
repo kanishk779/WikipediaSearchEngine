@@ -22,6 +22,9 @@ distinct_words = 0
 count_of_files = 0
 first_term_list = []
 doc_score = {} # this stores the score of each of the doc for a given query
+count_of_documents = 0
+RELEVANCE = [0.3, 0.1, 0.2, 0.25, 0.05, 0.1]
+
 '''
 This finds the term using binary search and returns its posting list
 '''
@@ -40,12 +43,25 @@ def find_term(term):
         else:
             high = mid - 1
     if ans == -1:
-        return []
+        return 0, []
     else:
         with open('./data/findex' + str(ans + 1) + '.txt', 'r') as file:
             # check whether it is more efficient to read line by line or read all the lines at once
             line = file.readline()
-            if len(line) > 0:
+            result = []
+            while len(line) > 0:
+                doc_term = ""
+                for char in line:
+                    if char == ' ':
+                        break
+                    else:
+                        doc_term += str(char)
+                if doc_term == term:
+                    result = line.split()
+                    break
+                line = file.readline()
+
+            return 1, result
                 
 
 
@@ -53,13 +69,13 @@ def find_term(term):
 This returns list of document_ID which contain 'term' in 'field'
 '''
 def handle_field_query(term, field):
-    index, posting = find_term(term)
+    ok, posting = find_term(term)
     result = []
-    if index == -1:
+    if not ok:
         return result
     for i in range(TYPES):
         if field == i:
-            for data in posting:
+            for data in posting[1:]:
                 if TYPE_LIST[i] in data:
                     docID = ''
                     for char in data:
@@ -75,11 +91,11 @@ def handle_field_query(term, field):
 This returns list of document_ID which contains 'term' anywhere in it
 '''
 def handle_simple_query(term):
-    index, posting = find_term(term)
+    ok, posting = find_term(term)
     result = []
-    if index == -1:
+    if not ok:
         return result
-    for data in posting:
+    for data in posting[1:]:
         docID = ''
         for char in data:
             if char >= 'a' and char <= 'z':
@@ -116,10 +132,12 @@ def load_info():
     global count_of_files
     global distinct_words
     global first_term_list
+    global count_of_documents
     with open('./data/stat.txt', 'r') as file:
         terms = int(file.readline())
         distinct_words = int(file.readline())
         count_of_files = int(file.readline())
+        count_of_documents = int(file.readline())
     
     for i in range(count_of_files):
         with open('./data/findex' + str(i+1) + '.txt', 'r') as file:
@@ -144,7 +162,9 @@ def main():
     Maybe we can parse these, YES WE CAN!!
     '''
     
-    read_index_into_memory()
+    # read_index_into_memory()
+    load_info()
+    load_titles()
     
     while True:
         query = input("ASK : ")

@@ -13,6 +13,7 @@ Identities = {}
 stop_words=set(stopwords.words('english'))
 split_on_reference = ['==References==', '== References ==']
 split_on_external_links = ['==External links==', '== External links ==']
+TYPE_LIST = ['t', 'b', 'i', 'c', 'r', 'e']
 
 idd =""
 tag =""
@@ -218,10 +219,10 @@ def index_creation():
     for i in categories:
         freq_categories[i] += 1
         freq_global[i] += 1
-    
+    # helps in forming blocks like :-  100f30i5b35r2c3e22t5
     for key in freq_global.keys():
         total_words += freq_global[key]
-        string = str(count_of_pages)
+        string = str(count_of_pages) + 'f' + str(freq_global[key])
         if freq_infobox[key]:
             string += 'i' + str(freq_infobox[key])
         if freq_body[key]:
@@ -256,6 +257,10 @@ def write_partial_index():
         distinct_terms += 1
         posting_list = temp_posting_list[term]
         st = term + ' '
+        docs = 0
+        for block in posting_list:
+            docs += 1
+            
         st += ' '.join(posting_list)
         datum.append(st)
     
@@ -404,7 +409,8 @@ def main():
     with open(folder + sys.argv[3], 'w') as file:
         file.write(str(total_words) + '\n')
         file.write(str(distinct_terms) +'\n')
-        file.write(str(count_of_final_files))
+        file.write(str(count_of_final_files) + '\n')
+        file.write(str(count_of_pages))
     # merge all the small index created using K-way merge
     merge_small_indexes()
     print(count_of_files)
