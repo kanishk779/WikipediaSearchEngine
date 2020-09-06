@@ -45,7 +45,7 @@ def find_term(term):
         else:
             high = mid - 1
     if ans == -1:
-        return 0, []
+        return False, []
     else:
         with open('./data/findex' + str(ans + 1) + '.txt', 'r') as file:
             # check whether it is more efficient to read line by line or read all the lines at once
@@ -62,8 +62,10 @@ def find_term(term):
                     result = line.split()
                     break
                 line = file.readline()
-
-            return 1, result
+            if len(result) > 0:
+                return True, result
+            else:
+                return False, result
                 
 
 
@@ -71,7 +73,9 @@ def find_term(term):
 This adds score to list of document_ID which contain 'term' in 'field' using tf-idf
 '''
 def handle_field_query(term, field):
+    global doc_score
     ok, posting = find_term(term)
+    print(posting)
     if ok:
         for i in range(TYPES):
             if field == i:
@@ -130,7 +134,9 @@ def handle_field_query(term, field):
 This adds score to list of document_ID which contains 'term' anywhere in it using tf-idf
 '''
 def handle_simple_query(term):
+    global doc_score
     ok, posting = find_term(term)
+    print(posting)
     if ok:
         docs = ""
         for char in posting[1]:
@@ -215,6 +221,10 @@ def load_info():
         distinct_words = int(file.readline())
         count_of_files = int(file.readline())
         count_of_documents = int(file.readline())
+    print('count of files : ', end='')
+    print(count_of_files)
+    print('count of documents : ', end='')
+    print(count_of_documents)
     
     for i in range(count_of_files):
         with open('./data/findex' + str(i+1) + '.txt', 'r') as file:
@@ -249,7 +259,7 @@ def main():
         if query == 'exit':
             break
         terms = query.split()
-        doc_score = {}
+        doc_score = defaultdict(float)
         query_terms = []
         for term in terms:
             term = term.strip()
@@ -287,9 +297,10 @@ def main():
         else:
             print('These docs contain your answer')
             score_list = []
-            for keys in doc_score:
-                score_list.append(doc_score[key], key)
-            score_list.sort()
+            for key in doc_score.keys():
+                score_list.append((doc_score[key], key))
+                print((key, doc_score[key]))
+            score_list.sort(reverse = True)
             n = len(score_list)
             titles_result = []
             k = 5
@@ -302,6 +313,7 @@ def main():
             
         print('\nTime: ', time.time()-start_time)
         print("\n")
+        
         
 if __name__ == '__main__':
     main()

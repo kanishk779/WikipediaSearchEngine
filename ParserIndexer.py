@@ -415,6 +415,7 @@ def main():
     global Identities
     global distinct_terms
     global path_to_indexes
+    global count_of_final_files
     current_directory = os.getcwd()
     folder = sys.argv[2]
     if folder[-1] != '/':
@@ -430,14 +431,15 @@ def main():
     parser.setContentHandler(handler)
     output = parser.parse(sys.argv[1])
     write_partial_index()
+    # merge all the small index created using K-way merge
+    merge_small_indexes()
     # we will need to change distinct_terms when we write the merge file function
     with open(folder + sys.argv[3], 'w') as file:
         file.write(str(total_words) + '\n')
         file.write(str(distinct_terms) +'\n')
         file.write(str(count_of_final_files) + '\n')
         file.write(str(count_of_pages))
-    # merge all the small index created using K-way merge
-    merge_small_indexes()
+    
     print(count_of_files)
     print(count_of_pages)
     print(count_of_final_files)
