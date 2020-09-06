@@ -26,7 +26,27 @@ doc_score = {} # this stores the score of each of the doc for a given query
 This finds the term using binary search and returns its posting list
 '''
 def find_term(term):
-    
+    global INDEX
+    global count_of_files
+    global first_term_list
+    low = 0
+    high = count_of_files - 1
+    ans = -1
+    while low <= high:
+        mid = low + int((high - low)//2)
+        if first_term_list[mid] <= term:
+            ans = mid
+            low = mid + 1
+        else:
+            high = mid - 1
+    if ans == -1:
+        return []
+    else:
+        with open('./data/findex' + str(ans + 1) + '.txt', 'r') as file:
+            # check whether it is more efficient to read line by line or read all the lines at once
+            line = file.readline()
+            if len(line) > 0:
+                
 
 
 '''
