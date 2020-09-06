@@ -66,16 +66,14 @@ def find_term(term):
 
 
 '''
-This returns list of document_ID which contain 'term' in 'field'
+This adds score to list of document_ID which contain 'term' in 'field'
 '''
 def handle_field_query(term, field):
     ok, posting = find_term(term)
-    result = []
-    if not ok:
-        return result
+    if ok:
     for i in range(TYPES):
         if field == i:
-            for data in posting[1:]:
+            for data in posting[2:]:
                 if TYPE_LIST[i] in data:
                     docID = ''
                     for char in data:
@@ -83,27 +81,23 @@ def handle_field_query(term, field):
                             break
                         else:
                             docID += char
-                    result.append(docID)
+                    # add to the score of this docID
             break
-    return result
 
 '''
-This returns list of document_ID which contains 'term' anywhere in it
+This adds score to list of document_ID which contains 'term' anywhere in it
 '''
 def handle_simple_query(term):
     ok, posting = find_term(term)
-    result = []
-    if not ok:
-        return result
-    for data in posting[1:]:
-        docID = ''
-        for char in data:
-            if char >= 'a' and char <= 'z':
-                break
-            else:
-                docID += char
-        result.append(docID)
-    return result
+    if ok:
+        for data in posting[2:]:
+            docID = ''
+            for char in data:
+                if char >= 'a' and char <= 'z':
+                    break
+                else:
+                    docID += char
+            # add to the score of this docID
 '''
 This loads the titles in memory for easy access of data instead of reading everytime from disk, titles can be multi words
 '''
