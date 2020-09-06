@@ -4,6 +4,7 @@ import math
 import Stemmer
 import time
 from nltk.corpus import stopwords
+from collections import defaultdict
 
 stop_words=set(stopwords.words('english'))
 my_stemmer = Stemmer.Stemmer('english')
@@ -15,13 +16,14 @@ REFERENCE = 4
 LINKS = 5
 TYPES = 6
 TYPE_LIST = ['t', 'b', 'i', 'c', 'r', 'e']
+TYPE_DICT = {'t':0, 'b':1, 'i':2, 'c':3, 'r':4, 'e':5}
 # We are storing the index in memory for now as it just 144MB , but this will not scale
 INDEX = {}
 title_dict = {}
 distinct_words = 0
 count_of_files = 0
 first_term_list = []
-doc_score = {} # this stores the score of each of the doc for a given query
+doc_score = defaultdict(float) # this stores the score of each of the doc for a given query
 count_of_documents = 0
 RELEVANCE = [0.3, 0.1, 0.2, 0.25, 0.05, 0.1]
 
@@ -66,37 +68,111 @@ def find_term(term):
 
 
 '''
-This adds score to list of document_ID which contain 'term' in 'field'
+This adds score to list of document_ID which contain 'term' in 'field' using tf-idf
 '''
 def handle_field_query(term, field):
     ok, posting = find_term(term)
     if ok:
-    for i in range(TYPES):
-        if field == i:
-            for data in posting[2:]:
-                if TYPE_LIST[i] in data:
-                    docID = ''
-                    for char in data:
-                        if char >= 'a' and char <= 'z':
-                            break
+        for i in range(TYPES):
+            if field == i:
+                docs = ""
+                done = False
+                for char in posting[1]:
+                    if char >= 'a' and char <= 'z':
+                        if char == TYPE_LIST[i]:
+                            done = True
                         else:
-                            docID += char
-                    # add to the score of this docID
-            break
+                            done = False
+                    else:
+                        if done:
+                            docs += str(char)
+                if len(docs) > 0:
+                    docs = int(docs)
+                    docs = float(docs)
+                else:
+                    return
+                idf = math.log(count_of_documents/docs)
+                for data in posting[2:]:
+                    if TYPE_LIST[i] in data:
+                        docID = ''
+                        ind = 0
+                        for char in data:
+                            if char >= 'a' and char <= 'z':
+                                break
+                            else:
+                                docID += char
+                            ind += 1
+                        
+                        current_char = '?'
+                        freq = ""
+                        sum = 0
+                        for char in data[ind:]:
+                            if char >= 'a' and char <= 'z':
+                                if len(freq) > 0:
+                                    freq = int(freq)
+                                    i = TYPE_DICT[current_char]
+                                    sum += RELEVANCE[i] * freq
+                                    freq = ""
+                                current_char = char
+                            else:
+                                freq += str(char)
+                        freq = int(freq)
+                        i = TYPE_DICT[current_char]
+                        sum += RELEVANCE[i] * freq
+                        
+                        docID = int(docID)
+                        # add to the score of this docID
+                        tf = 1.0 + math.log(1.0 + sum)
+                        doc_score[docID] += tf*idf
+                break
 
 '''
-This adds score to list of document_ID which contains 'term' anywhere in it
+This adds score to list of document_ID which contains 'term' anywhere in it using tf-idf
 '''
 def handle_simple_query(term):
     ok, posting = find_term(term)
     if ok:
+        docs = ""
+        for char in posting[1]:
+            if char == 'f':
+                continue
+            if char >= 'a' and char <= 'z':
+                break
+            docs += str(char)
+        docs = int(docs)
+        docs = float(docs)
+        idf = math.log(count_of_documents/docs)
         for data in posting[2:]:
             docID = ''
+            ind = 0
             for char in data:
                 if char >= 'a' and char <= 'z':
                     break
                 else:
                     docID += char
+                ind += 1
+            docID = int(docID)
+            current_char = '?'
+            freq = ""
+            sum = 0
+            for char in data[ind:]:
+                if char >= 'a' and char <= 'z':
+                    if len(freq) > 0:
+                        freq = int(freq)
+                        i = TYPE_DICT[current_char]
+                        sum += RELEVANCE[i] * freq
+                        freq = ""
+                    current_char = char
+                else:
+                    freq += str(char)
+            freq = int(freq)
+            i = TYPE_DICT[current_char]
+            sum += RELEVANCE[i] * freq
+            
+            docID = int(docID)
+
+            tf = 1.0 + math.log(1.0 + sum)
+            doc_score[docID] += tf*idf
             # add to the score of this docID
 '''
 This loads the titles in memory for easy access of data instead of reading everytime from disk, titles can be multi words

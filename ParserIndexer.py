@@ -222,7 +222,7 @@ def index_creation():
     # helps in forming blocks like :-  100f30i5b35r2c3e22t5
     for key in freq_global.keys():
         total_words += freq_global[key]
-        string = str(count_of_pages) + 'f' + str(freq_global[key])
+        string = str(count_of_pages)
         if freq_infobox[key]:
             string += 'i' + str(freq_infobox[key])
         if freq_body[key]:
