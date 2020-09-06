@@ -260,7 +260,6 @@ def main():
             print('This is not a good Query, Ask something meaningful')
             continue
         query_type = -1
-        result = []
         print('Query-terms')
         print(query_terms)
         for term in query_terms:
@@ -270,19 +269,17 @@ def main():
                     query_type = i
                     start = True
                     break
-            docIDs = []
             if query_type == -1:
                 if start:
-                    docIDs = handle_simple_query(term[2:])
+                    handle_simple_query(term[2:])
                 else:
-                    docIDs = handle_simple_query(term)
+                    handle_simple_query(term)
             else:
                 if start:
-                    docIDs = handle_field_query(term[2:], query_type)
+                    handle_field_query(term[2:], query_type)
                 else:
-                    docIDs = handle_field_query(term, query_type)
+                    handle_field_query(term, query_type)
             
-            result += docIDs
         
         # WE are ouputting all the files which are related to any of the term in the query, But we should actually use the merge algo to AND the lists
         if len(result) == 0:
