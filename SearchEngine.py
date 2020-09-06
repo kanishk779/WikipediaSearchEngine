@@ -282,11 +282,23 @@ def main():
             
         
         # WE are ouputting all the files which are related to any of the term in the query, But we should actually use the merge algo to AND the lists
-        if len(result) == 0:
+        if len(doc_score) == 0:
             print('Could not find anything related to your query')
         else:
             print('These docs contain your answer')
-            print(result)
+            score_list = []
+            for keys in doc_score:
+                score_list.append(doc_score[key], key)
+            score_list.sort()
+            n = len(score_list)
+            titles_result = []
+            k = 5
+            for i in range(min(n, k)):
+                num = score_list[i][1]
+                titles_result.append(title_dict[num])
+            
+            for t in titles_result:
+                print(t)
             
         print('\nTime: ', time.time()-start_time)
         print("\n")
