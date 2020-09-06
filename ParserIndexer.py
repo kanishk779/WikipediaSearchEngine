@@ -115,7 +115,9 @@ class MyParser(xml.sax.ContentHandler):
             flag=0
             ind = 1
             text_data = ["" , "", "", "", ""]
-
+'''
+Differentiates different part of wikipedia article and separates them into different 
+'''
 def text_processor():
     global infobox
     global body
@@ -160,7 +162,9 @@ def text_processor():
         for cat in category:
             result.append(cat[11 : len(cat) - 2])
         categories = remove_crap(' '.join(result))
-
+'''
+removes the special symbols from the text which are not useful information for search
+'''
 def remove_crap(text):
     result = []
     if len(text) == 0:
@@ -175,7 +179,9 @@ def remove_crap(text):
             w = my_stemmer.stemWord(w.lower())
             result.append(w)
     return result
-
+'''
+creates the inverted index using the frequency information stored in the freq_* lists it create
+'''
 def index_creation():
     global temp_posting_list
     global total_words
@@ -230,7 +236,7 @@ def index_creation():
             string += 't' + str(freq_title[key])
         
         temp_posting_list[key].append(string)
-    rem = count_of_pages%250
+    rem = count_of_pages%20000
     if not rem:
         write_partial_index()
     
@@ -297,7 +303,7 @@ def merge_small_indexes():
             term += str(char)
             ind += 1
         # we need to use this as the key for heapq
-        term_list.append((term, first_line[ind : ], i))
+        term_list.append((term, first_line[ind+1 : ], i))
     
     heapq.heapify(term_list)
     top = heapq.heappop(term_list)
@@ -314,7 +320,7 @@ def merge_small_indexes():
                 break
             term += str(char)
             ind += 1
-        heapq.heappush(term_list, (term, first_line[ind : ], top[2]))
+        heapq.heappush(term_list, (term, first_line[ind+1 : ], top[2])) # this avoids the unnecessary space
     else:
         not_processed[top[2]] = 0
         indexes[top[2]].close()
@@ -327,12 +333,12 @@ def merge_small_indexes():
         if top[0] != prev_term:
             diff = True
         # write after reading 10000 lines, but ensure all lines with same term are read before reading
-        if count > 900 and count < 1000 and diff:
+        if count > 499100 and count < 500000 and diff:
             datum = []
             count_of_final_files += 1
             for term in sorted(posting_list.keys()):
                 posting = posting_list[term]
-                st = term
+                st = term + ' '
                 st += ' '.join(posting)
                 datum.append(st)
     
@@ -352,7 +358,7 @@ def merge_small_indexes():
                     break
                 term += str(char)
                 ind += 1
-            heapq.heappush(term_list, (term, first_line[ind : ], top[2]))
+            heapq.heappush(term_list, (term, first_line[ind+1 : ], top[2]))
         else:
             not_processed[top[2]] = 0
             indexes[top[2]].close()
@@ -365,7 +371,7 @@ def merge_small_indexes():
         count_of_final_files += 1
         for term in sorted(posting_list.keys()):
             posting = posting_list[term]
-            st = term
+            st = term +  ' '
             st += ' '.join(posting)
             datum.append(st)
 
@@ -395,11 +401,11 @@ def main():
     output = parser.parse(sys.argv[1])
     write_partial_index()
     # we will need to change distinct_terms when we write the merge file function
-    with open(folder + 'fileCount.txt', 'w') as file:
-        file.write(str(count_of_files))
     with open(folder + sys.argv[3], 'w') as file:
         file.write(str(total_words) + '\n')
-        file.write(str(distinct_terms))
+        file.write(str(distinct_terms) +'\n')
+        file.write(str(count_of_final_files))
+    # merge all the small index created using K-way merge
     merge_small_indexes()
     print(count_of_files)
     print(count_of_pages)

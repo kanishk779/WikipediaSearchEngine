@@ -17,17 +17,17 @@ TYPES = 6
 TYPE_LIST = ['t', 'b', 'i', 'c', 'r', 'e']
 # We are storing the index in memory for now as it just 144MB , but this will not scale
 INDEX = {}
-title_offset = []
+title_dict = {}
 distinct_words = 0
+count_of_files = 0
+first_term_list = []
+doc_score = {} # this stores the score of each of the doc for a given query
 '''
-This finds the term using binary search(currently not using it) and returns its posting list
+This finds the term using binary search and returns its posting list
 '''
 def find_term(term):
-    global INDEX
-    if term in INDEX:
-        return 1, INDEX[term]
-    else:
-        return -1, []
+    
+
 
 '''
 This returns list of document_ID which contain 'term' in 'field'
@@ -69,32 +69,51 @@ def handle_simple_query(term):
         result.append(docID)
     return result
 '''
-This loads the offsets in memory for easy access of data from files on disk
+This loads the titles in memory for easy access of data instead of reading everytime from disk
 '''
-def load_offsets():
-    global title_offset
-    global distinct_words
-    with open('./data/titleOffset.txt', 'r') as file:
+def load_titles():
+    global title_dict
+    with open('./data/title.txt','r') as file:
         lines = file.readlines()
         for line in lines:
-            title_offset.append(int(line.strip()))
-    with open('./data/totalTerms.txt', 'r') as file:
-        lines = file.readlines()
-        for line in lines:
-            distinct_words = int(line.strip())
+            temp = line.split()
+            title_dict[int(temp[0])] = temp[1]
     
 '''
-This reads the index into memory, this is fine for Phase-1
+This reads the partial index into memory. We read such a file which contains our term
 '''
-def read_index_into_memory():
+def read_index_into_memory(num):
     global INDEX
-    with open('./data/index0.txt', 'r') as file:
+    with open('./data/findex' + str(num) + '.txt', 'r') as file:
         lines = file.readlines()
         for line in lines:
             line = line.split()
             INDEX[line[0]] = line[1 : ]
+'''
+Load necessary information in memory
+'''
+def load_info():
+    global count_of_files
+    global distinct_words
+    global first_term_list
+    with open('./data/stat.txt', 'r') as file:
+        terms = int(file.readline())
+        distinct_words = int(file.readline())
+        count_of_files = int(file.readline())
+    
+    for i in range(count_of_files):
+        with open('./data/findex' + str(i+1) + '.txt', 'r') as file:
+            line = file.readline()
+            term = ""
+            for char in line:
+                if char == ' ':
+                    break
+                else:
+                    term += str(char)
+            first_term_list.append(term)
 
 def main():
+    global doc_score
     field_queries = ['t:', 'b:', 'i:', 'c:', 'r:', 'e:']
     
     '''
@@ -114,6 +133,7 @@ def main():
         if query == 'exit':
             break
         terms = query.split()
+        doc_score = {}
         query_terms = []
         for term in terms:
             term = term.strip()
