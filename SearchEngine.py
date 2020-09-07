@@ -3,6 +3,7 @@ import os
 import math
 import Stemmer
 import time
+import heapq
 from nltk.corpus import stopwords
 from collections import defaultdict
 
@@ -75,7 +76,6 @@ This adds score to list of document_ID which contain 'term' in 'field' using tf-
 def handle_field_query(term, field):
     global doc_score
     ok, posting = find_term(term)
-    print(posting)
     if ok:
         for i in range(TYPES):
             if field == i:
@@ -95,7 +95,7 @@ def handle_field_query(term, field):
                     docs = float(docs)
                 else:
                     return
-                idf = math.log(count_of_documents/docs)
+                idf = float(math.log(count_of_documents/docs))
                 for data in posting[2:]:
                     if TYPE_LIST[i] in data:
                         docID = ''
@@ -127,7 +127,7 @@ def handle_field_query(term, field):
                         docID = int(docID)
                         # add to the score of this docID
                         tf = 1.0 + math.log(1.0 + sum)
-                        doc_score[docID] += tf*idf
+                        doc_score[docID] += float(tf*idf)
                 break
 
 '''
@@ -136,7 +136,6 @@ This adds score to list of document_ID which contains 'term' anywhere in it usin
 def handle_simple_query(term):
     global doc_score
     ok, posting = find_term(term)
-    print(posting)
     if ok:
         docs = ""
         for char in posting[1]:
@@ -147,7 +146,7 @@ def handle_simple_query(term):
             docs += str(char)
         docs = int(docs)
         docs = float(docs)
-        idf = math.log(count_of_documents/docs)
+        idf = float(math.log(count_of_documents/docs))
         for data in posting[2:]:
             docID = ''
             ind = 0
@@ -178,7 +177,7 @@ def handle_simple_query(term):
             docID = int(docID)
 
             tf = 1.0 + math.log(1.0 + sum)
-            doc_score[docID] += tf*idf
+            doc_score[docID] += float(tf*idf)
             # add to the score of this docID
 '''
 This loads the titles in memory for easy access of data instead of reading everytime from disk, titles can be multi words
@@ -221,10 +220,6 @@ def load_info():
         distinct_words = int(file.readline())
         count_of_files = int(file.readline())
         count_of_documents = int(file.readline())
-    print('count of files : ', end='')
-    print(count_of_files)
-    print('count of documents : ', end='')
-    print(count_of_documents)
     
     for i in range(count_of_files):
         with open('./data/findex' + str(i+1) + '.txt', 'r') as file:
@@ -259,9 +254,15 @@ def main():
         if query == 'exit':
             break
         terms = query.split()
+        print(terms)
         doc_score = defaultdict(float)
         query_terms = []
-        for term in terms:
+        k = ""
+        for num in terms[0]:
+            if num >= '0' and num <= '9':
+                k += str(num)
+        k = int(k)
+        for term in terms[1:]:
             term = term.strip()
             if term not in stop_words:
                 term = my_stemmer.stemWord(term)
@@ -298,18 +299,17 @@ def main():
             print('These docs contain your answer')
             score_list = []
             for key in doc_score.keys():
-                score_list.append((doc_score[key], key))
+                score_list.append((-1.0 * doc_score[key], key))
                 print((key, doc_score[key]))
-            score_list.sort(reverse = True)
+            heapq.heapify(score_list)
+
             n = len(score_list)
             titles_result = []
-            k = 5
             for i in range(min(n, k)):
-                num = score_list[i][1]
-                titles_result.append(title_dict[num])
-            
-            for t in titles_result:
-                print(t)
+                top = heapq.heappop(score_list)
+                num = top[1]
+                print(num, end=' ')
+                print(title_dict[num])
             
         print('\nTime: ', time.time()-start_time)
         print("\n")

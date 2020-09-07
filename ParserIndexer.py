@@ -251,10 +251,8 @@ def write_partial_index():
     global temp_posting_list
     global Identities
     global count_of_files
-    global distinct_terms
     datum = []
     for term in sorted(temp_posting_list.keys()):
-        distinct_terms += 1
         posting_list = temp_posting_list[term]
         st = term + ' '
         st += ' '.join(posting_list)
@@ -290,6 +288,7 @@ def merge_small_indexes():
     # write this method using heapq, we will get set
     global path_to_indexes
     global count_of_final_files
+    global distinct_terms
     not_processed = [1] * count_of_files
     indexes = {}
     term_list = []
@@ -334,10 +333,11 @@ def merge_small_indexes():
         if top[0] != prev_term:
             diff = True
         # write after reading 10000 lines, but ensure all lines with same term are read before reading
-        if count > 48000 and count < 50000 and diff:
+        if count > 16800 and count < 17800 and diff:
             datum = []
             count_of_final_files += 1
             for term in sorted(posting_list.keys()):
+                distinct_terms += 1
                 posting = posting_list[term]
                 st = term + ' '
                 docs = 0
@@ -385,6 +385,7 @@ def merge_small_indexes():
         datum = []
         count_of_final_files += 1
         for term in sorted(posting_list.keys()):
+            distinct_terms += 1
             posting = posting_list[term]
             st = term +  ' '
             docs = 0
@@ -430,6 +431,7 @@ def main():
     handler = MyParser()
     parser.setContentHandler(handler)
     output = parser.parse(sys.argv[1])
+
     write_partial_index()
     # merge all the small index created using K-way merge
     merge_small_indexes()
