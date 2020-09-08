@@ -26,6 +26,8 @@ count_of_files = 0
 first_term_list = []
 doc_score = defaultdict(float) # this stores the score of each of the doc for a given query
 count_of_documents = 0
+first_num_list = []
+count_of_title_files = 0
 RELEVANCE = [0.3, 0.1, 0.2, 0.25, 0.05, 0.1]
 
 '''
@@ -214,7 +216,9 @@ def load_info():
     global count_of_files
     global distinct_words
     global first_term_list
+    global first_num_list
     global count_of_documents
+    global count_of_title_files
     with open('./data/stat.txt', 'r') as file:
         terms = int(file.readline())
         distinct_words = int(file.readline())
@@ -231,6 +235,59 @@ def load_info():
                 else:
                     term += str(char)
             first_term_list.append(term)
+    count_of_title_files = 60
+    for i in range(count_of_title_files):
+        with open('./data/title' + str(i) + '.txt', 'r') as file:
+            line = file.readline()
+            term = ""
+            for char in line:
+                if char == ' ':
+                    break
+                else:
+                    term += str(char)
+            first_term_list.append(int(term))
+
+'''
+Prints the final results
+'''
+def print_title(nums):
+    global first_num_list
+    nums.sort()
+    title_file_dict = defaultdict(list)
+    for n in nums:
+        ans = -1
+        low = 0
+        high = count_of_title_files - 1
+        while low <= high:
+            mid = low + int((high - low)//2)
+            if first_num_list[mid] <= n:
+                ans = mid
+                low = mid + 1
+            else:
+                high = mid - 1
+        if ans != -1:
+            title_file_dict[ans].append(n)
+    for key in title_file_dict.keys():
+        title_file_dict[key].sort()
+        freq = len(title_file_dict[key])
+        with open('./data/title' + str(key) + '.txt', 'r') as file:
+            ind = 0
+            while True:
+                line = file.readline().strip()
+                term = ""
+                for char in line:
+                    if char == ' ':
+                        break
+                    else:
+                        term += str(char)
+                term = int(term)
+                if term == title_file_dict[key][ind]:
+                    print(line)
+                    ind += 1
+                    if ind == freq:
+                        break
+
+
 
 def main():
     global doc_score
@@ -246,7 +303,8 @@ def main():
     
     # read_index_into_memory()
     load_info()
-    load_titles()
+    # we need to see which one gives better results
+    # load_titles()
     while True:
         query = input("ASK : ")
         start_time = time.time()
@@ -304,12 +362,15 @@ def main():
             heapq.heapify(score_list)
 
             n = len(score_list)
-            titles_result = []
+            titles_num = []
             for i in range(min(n, k)):
                 top = heapq.heappop(score_list)
                 num = top[1]
-                print(num, end=' ')
-                print(title_dict[num])
+                # print(num, end=' ')
+                # print(title_dict[num])
+                # do binary search
+                titles_num.append(num)
+            print_title(titles_num)
             
         print('\nTime: ', time.time()-start_time)
         print("\n")
