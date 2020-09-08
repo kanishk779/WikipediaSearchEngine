@@ -164,6 +164,24 @@ def text_processor():
             result.append(cat[11 : len(cat) - 2])
         categories = remove_crap(' '.join(result))
 '''
+Checks whether given text is a four digit number or not, or just maybe not even a number to begin with
+'''
+def check_num(text):
+    n = len(text)
+    if n > 0:
+        if text[0] >= '0' and text[0] <= '9':
+            if n == 4:
+                ok = True
+                for i in range(1, 4):
+                    if text[i] < '0' or text[i] > '9':
+                        ok = False
+                return ok
+            else:
+                return False
+        else:
+            return True
+
+'''
 removes the special symbols from the text which are not useful information for search
 '''
 def remove_crap(text):
@@ -176,7 +194,8 @@ def remove_crap(text):
 
     text = text.split()
     for w in text:
-        if w.strip() not in stop_words:
+        w = w.strip()
+        if w not in stop_words and check_num(w):
             w = my_stemmer.stemWord(w.lower())
             result.append(w)
     return result
