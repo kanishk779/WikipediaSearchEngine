@@ -82,6 +82,14 @@ def handle_field_query(term, field):
     global doc_score
     ok, posting = find_term(term)
     if ok:
+        start = ""
+        done = False
+        for char in posting[1]:
+            if char == 's':
+                done = True
+            if done:
+                start += str(char)
+        start = int(start)
         for i in range(TYPES):
             if field == i:
                 docs = ""
@@ -130,6 +138,7 @@ def handle_field_query(term, field):
                         sum += RELEVANCE[i] * freq
                         
                         docID = int(docID)
+                        docID += start
                         # add to the score of this docID
                         tf = 1.0 + math.log(1.0 + sum)
                         doc_score[docID] += float(tf*idf)
@@ -142,6 +151,14 @@ def handle_simple_query(term):
     global doc_score
     ok, posting = find_term(term)
     if ok:
+        start = ""
+        done = False
+        for char in posting[1]:
+            if char == 's':
+                done = True
+            if done:
+                start += str(char)
+        start = int(start)
         docs = ""
         for char in posting[1]:
             if char == 'f':
@@ -180,7 +197,7 @@ def handle_simple_query(term):
             sum += RELEVANCE[i] * freq
             
             docID = int(docID)
-
+            docID += start
             tf = 1.0 + math.log(1.0 + sum)
             doc_score[docID] += float(tf*idf)
             # add to the score of this docID

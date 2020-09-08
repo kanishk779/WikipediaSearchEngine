@@ -428,6 +428,52 @@ def merge_small_indexes():
         with open(path_to_indexes+'findex' + str(count_of_final_files) + '.txt', 'w') as file:
             file.write('\n'.join(datum))
 
+'''
+It changes the document Id to difference, which helps in reducing the size of index
+'''
+def keep_differences():
+    global count_of_final_files
+    for i in range(count_of_final_files):
+        datum = []
+        with open('./data/findex' + str(i+1) + '.txt', 'r') as file:
+            lines = file.readlines()
+            for line in lines:
+                terms = line.split()
+                start = ""
+                for char in terms[2]:
+                    if char == ' ':
+                        break
+                    else:
+                        start += str(char)
+                terms[1] += "s" + start
+                start = int(start)
+                new_terms = []
+                new_terms.append(terms[0])
+                new_terms.append(terms[1])
+                n = len(terms)
+                for i in range(2, n):
+                    block = ""
+                    num = ""
+                    ind = 0
+                    for char in terms[i]:
+                        if char >= 'a' and char <= 'z':
+                            break
+                        else:
+                            num += str(char)
+                        ind += 1
+                    num = int(num)
+                    diff = num - start
+                    block = str(diff)
+                    block += terms[i][ind:]
+                    new_terms.append(block)
+                
+                string = ' '.join(new_terms)
+                datum.append(string)
+            file.close()
+        
+        with open('./data1/findex' + str(i+1) + '.txt', 'w') as file:
+            file.write('\n'.join(datum))
+            file.close()
 
 
 def main():
