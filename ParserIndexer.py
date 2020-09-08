@@ -169,8 +169,8 @@ Checks whether given text is a four digit number or not, or just maybe not even 
 def check_num(text):
     n = len(text)
     if n > 0:
-        if text[0] >= '1' and text[0] <= '9':
-            if n == 4:
+        if text[0] >= '0' and text[0] <= '9':
+            if n == 4 and text[0] >= '1':
                 ok = True
                 for i in range(1, 4):
                     if text[i] < '0' or text[i] > '9':
@@ -322,15 +322,15 @@ def merge_small_indexes():
             term += str(char)
             ind += 1
         # we need to use this as the key for heapq
-        term_list.append((term, first_line[ind+1 : ], i))
+        term_list.append((term, i, first_line[ind+1 : ]))
     
     heapq.heapify(term_list)
     top = heapq.heappop(term_list)
     prev_term = top[0]
     posting_list = defaultdict(list)
-    posting_list[prev_term].append(top[1])
+    posting_list[prev_term].append(top[2])
     # read next line from this file
-    first_line = indexes[top[2]].readline().strip()
+    first_line = indexes[top[1]].readline().strip()
     if len(first_line) > 0:
         term = ""
         ind = 0
@@ -339,10 +339,10 @@ def merge_small_indexes():
                 break
             term += str(char)
             ind += 1
-        heapq.heappush(term_list, (term, first_line[ind+1 : ], top[2])) # this avoids the unnecessary space
+        heapq.heappush(term_list, (term, top[1], first_line[ind+1 : ])) # this avoids the unnecessary space
     else:
-        not_processed[top[2]] = 0
-        indexes[top[2]].close()
+        not_processed[top[1]] = 0
+        indexes[top[1]].close()
         os.remove(path_to_indexes+'index'+str(i)+'.txt')
     
     count = 1
@@ -381,9 +381,9 @@ def merge_small_indexes():
             posting_list = defaultdict(list)
             count = 0
         
-        posting_list[top[0]].append(top[1])
+        posting_list[top[0]].append(top[2])
         count += 1
-        first_line = indexes[top[2]].readline().strip()
+        first_line = indexes[top[1]].readline().strip()
         if len(first_line) > 0:
             term = ""
             ind = 0
@@ -392,11 +392,11 @@ def merge_small_indexes():
                     break
                 term += str(char)
                 ind += 1
-            heapq.heappush(term_list, (term, first_line[ind+1 : ], top[2]))
+            heapq.heappush(term_list, (term, top[1], first_line[ind+1 : ]))
         else:
-            not_processed[top[2]] = 0
-            indexes[top[2]].close()
-            os.remove(path_to_indexes+'index'+str(top[2])+'.txt')
+            not_processed[top[1]] = 0
+            indexes[top[1]].close()
+            os.remove(path_to_indexes+'index'+str(top[1])+'.txt')
         prev_term = top[0]
         
     

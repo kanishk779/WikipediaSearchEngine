@@ -329,75 +329,79 @@ def main():
     load_info()
     # we need to see which one gives better results
     # load_titles()
-    while True:
-        query = input("ASK : ")
-        start_time = time.time()
-        query = query.lower().strip()
-        if query == 'exit':
-            break
-        terms = query.split()
-        print(terms)
-        doc_score = defaultdict(float)
-        query_terms = []
-        k = ""
-        for num in terms[0]:
-            if num >= '0' and num <= '9':
-                k += str(num)
-        k = int(k)
-        for term in terms[1:]:
-            term = term.strip()
-            if term not in stop_words:
-                term = my_stemmer.stemWord(term)
-                query_terms.append(term)
-        if len(query_terms) == 0:
-            print('This is not a good Query, Ask something meaningful')
-            continue
-        query_type = -1
-        print('Query-terms')
-        print(query_terms)
-        for term in query_terms:
-            start = False
-            for i in range(TYPES):
-                if term[0:2] == field_queries[i]:
-                    query_type = i
-                    start = True
-                    break
-            if query_type == -1:
-                if start:
-                    handle_simple_query(term[2:])
+    with open(sys.argv[1], 'r') as file:
+        lines = file.readlines()
+        for line in lines:
+            # query = input("ASK : ")
+            query = line
+            start_time = time.time()
+            query = query.lower().strip()
+            # if query == 'exit':
+            #     break
+            terms = query.split()
+            print(terms)
+            doc_score = defaultdict(float)
+            query_terms = []
+            k = ""
+            for num in terms[0]:
+                if num >= '0' and num <= '9':
+                    k += str(num)
+            k = int(k)
+            for term in terms[1:]:
+                term = term.strip()
+                if term not in stop_words:
+                    term = my_stemmer.stemWord(term)
+                    query_terms.append(term)
+            if len(query_terms) == 0:
+                print('This is not a good Query, Ask something meaningful')
+                continue
+            query_type = -1
+            print('Query-terms')
+            print(query_terms)
+            for term in query_terms:
+                start = False
+                for i in range(TYPES):
+                    if term[0:2] == field_queries[i]:
+                        query_type = i
+                        start = True
+                        break
+                if query_type == -1:
+                    if start:
+                        handle_simple_query(term[2:])
+                    else:
+                        handle_simple_query(term)
                 else:
-                    handle_simple_query(term)
+                    if start:
+                        handle_field_query(term[2:], query_type)
+                    else:
+                        handle_field_query(term, query_type)
+                
+            
+            # WE are ouputting all the files which are related to any of the term in the query, But we should actually use the merge algo to AND the lists
+            if len(doc_score) == 0:
+                print('Could not find anything related to your query')
             else:
-                if start:
-                    handle_field_query(term[2:], query_type)
-                else:
-                    handle_field_query(term, query_type)
-            
-        
-        # WE are ouputting all the files which are related to any of the term in the query, But we should actually use the merge algo to AND the lists
-        if len(doc_score) == 0:
-            print('Could not find anything related to your query')
-        else:
-            print('These docs contain your answer')
-            score_list = []
-            for key in doc_score.keys():
-                score_list.append((-1.0 * doc_score[key], key))
-                print((key, doc_score[key]))
-            heapq.heapify(score_list)
+                print('These docs contain your answer')
+                score_list = []
+                for key in doc_score.keys():
+                    score_list.append((-1.0 * doc_score[key], key))
+                    print((key, doc_score[key]))
+                heapq.heapify(score_list)
 
-            n = len(score_list)
-            titles_num = []
-            for i in range(min(n, k)):
-                top = heapq.heappop(score_list)
-                num = top[1]
-                # print(num, end=' ')
-                # print(title_dict[num])
-                # do binary search
-                titles_num.append(num)
-            print_title(titles_num)
+                n = len(score_list)
+                titles_num = []
+                for i in range(min(n, k)):
+                    top = heapq.heappop(score_list)
+                    num = top[1]
+                    # print(num, end=' ')
+                    # print(title_dict[num])
+                    # do binary search
+                    titles_num.append(num)
+                print_title(titles_num)
+                
+            print('\nTime: ', time.time()-start_time)
+            print("\n")
             
-        print('\nTime: ', time.time()-start_time)
-        print("\n")
         
         
 if __name__ == '__main__':
