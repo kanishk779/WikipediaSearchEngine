@@ -66,9 +66,12 @@ def find_term(term):
                     break
                 line = file.readline()
             if len(result) > 0:
+                file.close()
                 return True, result
             else:
+                file.close()
                 return False, result
+
                 
 
 
@@ -224,6 +227,7 @@ def load_info():
         distinct_words = int(file.readline())
         count_of_files = int(file.readline())
         count_of_documents = int(file.readline())
+        file.close()
     
     for i in range(count_of_files):
         with open('./data/findex' + str(i+1) + '.txt', 'r') as file:
@@ -235,6 +239,7 @@ def load_info():
                 else:
                     term += str(char)
             first_term_list.append(term)
+            file.close()
     count_of_title_files = 60
     for i in range(count_of_title_files):
         with open('./data/title' + str(i) + '.txt', 'r') as file:
@@ -246,6 +251,7 @@ def load_info():
                 else:
                     term += str(char)
             first_term_list.append(int(term))
+            file.close()
 
 '''
 Prints the final results
@@ -286,6 +292,7 @@ def print_title(nums):
                     ind += 1
                     if ind == freq:
                         break
+            file.close()
 
 
 
