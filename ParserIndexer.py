@@ -169,7 +169,7 @@ Checks whether given text is a four digit number or not, or just maybe not even 
 def check_num(text):
     n = len(text)
     if n > 0:
-        if text[0] >= '0' and text[0] <= '9':
+        if text[0] >= '1' and text[0] <= '9':
             if n == 4:
                 ok = True
                 for i in range(1, 4):
@@ -441,7 +441,7 @@ def keep_differences():
                 terms = line.split()
                 start = ""
                 for char in terms[2]:
-                    if char == ' ':
+                    if char >= 'a' and char <= 'z':
                         break
                     else:
                         start += str(char)
@@ -451,11 +451,11 @@ def keep_differences():
                 new_terms.append(terms[0])
                 new_terms.append(terms[1])
                 n = len(terms)
-                for i in range(2, n):
+                for j in range(2, n):
                     block = ""
                     num = ""
                     ind = 0
-                    for char in terms[i]:
+                    for char in terms[j]:
                         if char >= 'a' and char <= 'z':
                             break
                         else:
@@ -463,8 +463,11 @@ def keep_differences():
                         ind += 1
                     num = int(num)
                     diff = num - start
+                    if diff < 0:
+                        print(terms[0])
+                        raise ValueError("diff is negative")
                     block = str(diff)
-                    block += terms[i][ind:]
+                    block += terms[j][ind:]
                     new_terms.append(block)
                 
                 string = ' '.join(new_terms)
@@ -501,6 +504,9 @@ def main():
     # merge all the small index created using K-way merge
     merge_small_indexes()
     # we will need to change distinct_terms when we write the merge file function
+
+    # only keep the difference
+    keep_differences()
     with open(folder + sys.argv[3], 'w') as file:
         file.write(str(total_words) + '\n')
         file.write(str(distinct_terms) +'\n')
