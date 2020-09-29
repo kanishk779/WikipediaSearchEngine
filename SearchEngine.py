@@ -23,11 +23,11 @@ INDEX = {}
 title_dict = {}
 distinct_words = 0
 count_of_files = 0
-first_term_list = []
+first_term_list = [] # This stores the first of each index file (helps in binary search)
 doc_score = defaultdict(float) # this stores the score of each of the doc for a given query
-count_of_documents = 0
-first_num_list = []
-count_of_title_files = 0
+count_of_documents = 0  # How many documents were indexed by the ParserIndexer.py
+first_num_list = []  # This stores the first number of each title file (helps in binary search) 
+count_of_title_files = 0 # How many files were title.txt split into -> it is 100 here
 RELEVANCE = [0.3, 0.1, 0.2, 0.25, 0.05, 0.1]
 
 '''
@@ -85,10 +85,10 @@ def handle_field_query(term, field):
         start = ""
         done = False
         for char in posting[1]:
-            if char == 's':
-                done = True
             if done:
                 start += str(char)
+            if char == 's':
+                done = True
         start = int(start)
         for i in range(TYPES):
             if field == i:
@@ -154,10 +154,10 @@ def handle_simple_query(term):
         start = ""
         done = False
         for char in posting[1]:
-            if char == 's':
-                done = True
             if done:
                 start += str(char)
+            if char == 's':
+                done = True
         start = int(start)
         docs = ""
         for char in posting[1]:
@@ -257,9 +257,9 @@ def load_info():
                     term += str(char)
             first_term_list.append(term)
             file.close()
-    count_of_title_files = 60
+    count_of_title_files = 100
     for i in range(count_of_title_files):
-        with open('./data/title' + str(i) + '.txt', 'r') as file:
+        with open('./data/ftitle' + str(i) + '.txt', 'r') as file:
             line = file.readline()
             term = ""
             for char in line:
@@ -267,8 +267,9 @@ def load_info():
                     break
                 else:
                     term += str(char)
-            first_term_list.append(int(term))
+            first_num_list.append(int(term))
             file.close()
+
 
 '''
 Prints the final results
@@ -290,10 +291,11 @@ def print_title(nums):
                 high = mid - 1
         if ans != -1:
             title_file_dict[ans].append(n)
+    final_result = []
     for key in title_file_dict.keys():
         title_file_dict[key].sort()
         freq = len(title_file_dict[key])
-        with open('./data/title' + str(key) + '.txt', 'r') as file:
+        with open('./data/ftitle' + str(key) + '.txt', 'r') as file:
             ind = 0
             while True:
                 line = file.readline().strip()
@@ -305,11 +307,22 @@ def print_title(nums):
                         term += str(char)
                 term = int(term)
                 if term == title_file_dict[key][ind]:
-                    print(line)
+                    temp = line.split()
+                    res = temp[0] + ','
+                    # print(temp[0], end='')
+                    # print(',',end=' ')
+                    l = len(temp)
+                    for i in range(1, l):
+                        # print(temp[i], end=' ')
+                        res += ' ' + temp[i]
                     ind += 1
+                    # print()
+                    final_result.append(res)
                     if ind == freq:
                         break
             file.close()
+        
+    return final_result
 
 
 
@@ -339,7 +352,7 @@ def main():
             # if query == 'exit':
             #     break
             terms = query.split()
-            print(terms)
+            # print(terms)
             doc_score = defaultdict(float)
             query_terms = []
             k = ""
@@ -356,8 +369,8 @@ def main():
                 print('This is not a good Query, Ask something meaningful')
                 continue
             query_type = -1
-            print('Query-terms')
-            print(query_terms)
+            # print('Query-terms')
+            # print(query_terms)
             for term in query_terms:
                 start = False
                 for i in range(TYPES):
@@ -376,16 +389,16 @@ def main():
                     else:
                         handle_field_query(term, query_type)
                 
-            
+            res = []
             # WE are ouputting all the files which are related to any of the term in the query, But we should actually use the merge algo to AND the lists
             if len(doc_score) == 0:
                 print('Could not find anything related to your query')
             else:
-                print('These docs contain your answer')
+                # print('These docs contain your answer')
                 score_list = []
                 for key in doc_score.keys():
                     score_list.append((-1.0 * doc_score[key], key))
-                    print((key, doc_score[key]))
+                    # print((key, doc_score[key]))
                 heapq.heapify(score_list)
 
                 n = len(score_list)
@@ -397,10 +410,14 @@ def main():
                     # print(title_dict[num])
                     # do binary search
                     titles_num.append(num)
-                print_title(titles_num)
-                
-            print('\nTime: ', time.time()-start_time)
-            print("\n")
+                res = print_title(titles_num)
+            res.append(str(time.time() - start_time))
+            with open('./2019121010_queries_op.txt', 'a') as file:
+                out = '\n'.join(res)
+                file.write(out)
+                file.write('\n')
+            # print(time.time()-start_time)
+            # print("\n")
             
         
         

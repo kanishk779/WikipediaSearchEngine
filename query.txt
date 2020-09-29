@@ -1,0 +1,25 @@
+10, t:Agostini
+5, b:Prisoner of Azkaban i:2004
+10, b:St Pancras t:Underground
+20, t:It's All True c:films
+10, Combat School
+20, b:Californication Season
+10, String Quartet 14 Dvorak
+10, t:presidential campaign b:obama i:2012
+20, b:Terence i:Fields Medal
+10, b:Genie Awards i:1987
+10, t:love b:Arrows
+20, police chief association
+10, t:Fallout i:windows r:bethesda
+10, t:Virgin Islands c:islands
+10, Space Canine Patrol Agents
+20, t:Zariski-Riemann c:Bernhard Riemann
+5, 25 December
+5, Interstate 74
+3, b:V for Vendetta i:2006
+5, young's modulus
+10, b:Speed of light c:Concepts in physics
+20, b:angus r:tories i:James Lee
+30, b:Taxicab 1729
+50, b:Marc Spector i:Marvel Comics c:1980 comics debuts
+100, Sudebnik

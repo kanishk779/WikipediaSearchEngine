@@ -1,0 +1,3 @@
+Number of index files -> 9154
+Number of documents indexed ->9829059
+Size of Index -> 10.5 GB
