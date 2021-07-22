@@ -1,5 +1,5 @@
 # WikipediaSearchEngine
-This is a IRE (Information Retrieval and Extraction) project which aims at
+This project was done as part IRE (Information Retrieval and Extraction) course. It aims at
 building a search engine on wikipedia corpus of about 40 GB size. 
 The size of index is 10.5 GB.
 The two main python scripts are ParserIndexer.py and SearchEngine.py
@@ -16,10 +16,9 @@ ParserIndexer.py builds the index from the wikipedia articles
    first term in the posting list.
 7. Each term is stored in 'term f10t1b3i1c2r2e1 ......'
 
-## Utility
-* WikiIndexer.py- parses wikipedia dump and makes inverted index
-* merge.py- merges index files and split them into smaller chunks
-* search.py- main query program that returns results in less than 5 seconds
+## Important Files
+* ParserIndexer.py- parses wikipedia dump and makes inverted index
+* SearchEngine.py- main query program that returns results in less than 5 seconds
 
 ## Data
 Data used is entire wikipedia corpus which is passed in indexer, and indexed results are searched while queries.
